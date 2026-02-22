@@ -1,0 +1,130 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            artifact: LangevinEQ251A-win-x64
+          - os: ubuntu-latest
+            name: Linux
+            artifact: LangevinEQ251A-linux-x64
+          - os: macos-latest
+            name: macOS
+            artifact: LangevinEQ251A-mac-universal
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone VST3 SDK
+        run: git clone --recursive --depth 1 https://github.com/steinbergmedia/vst3sdk.git
+
+      # --- Windows ---
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -B build -A x64
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build --config Release --target LangevinEQ251A
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p staging
+          cp -r build/VST3/Release/LangevinEQ251A.vst3 staging/
+        shell: bash
+
+      # --- Linux ---
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: cmake --build build --config Release --target LangevinEQ251A -j$(nproc)
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p staging
+          cp -r build/VST3/Release/LangevinEQ251A.vst3 staging/
+
+      # --- macOS ---
+      - name: Clone AudioUnit SDK (macOS)
+        if: runner.os == 'macOS'
+        run: git clone --depth 1 https://github.com/apple/AudioUnitSDK.git
+
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -B build -G Xcode \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="10.13" \
+            -DSMTG_AUDIOUNIT_SDK_PATH="$PWD/AudioUnitSDK"
+
+      - name: Build VST3 (macOS)
+        if: runner.os == 'macOS'
+        run: cmake --build build --config Release --target LangevinEQ251A
+
+      - name: Build Audio Unit (macOS)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: cmake --build build --config Release --target LangevinEQ251A-au
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p staging
+          cp -r build/VST3/Release/LangevinEQ251A.vst3 staging/
+          if [ -d "build/VST3/Release/Langevin EQ-251A.component" ]; then
+            cp -r "build/VST3/Release/Langevin EQ-251A.component" staging/
+          fi
+
+      # --- Upload ---
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: staging/
+
+  # Create a GitHub Release when a tag is pushed
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Zip artifacts
+        run: |
+          cd artifacts
+          for dir in */; do
+            name="${dir%/}"
+            (cd "$name" && zip -r "../../${name}.zip" .)
+          done
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.zip"
+          generate_release_notes: true

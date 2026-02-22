@@ -1,0 +1,10 @@
+build/
+vst3sdk/
+AudioUnitSDK/
+*.vst3/
+*.component/
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+CMakeUserPresets.json
