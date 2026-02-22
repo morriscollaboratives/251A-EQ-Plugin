@@ -13,10 +13,12 @@ cmake_minimum_required(VERSION 3.25.0)
 #   macOS:    cmake .. -G Xcode && cmake --build . --config Release
 # -------------------------------------------------------
 
-# Disable unnecessary SDK examples and VSTGUI (no custom GUI)
+# Disable unnecessary SDK examples
 set(SMTG_ENABLE_VST3_PLUGIN_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SMTG_ENABLE_VST3_HOSTING_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SMTG_ENABLE_VSTGUI_SUPPORT OFF CACHE BOOL "" FORCE)
+
+# Enable VSTGUI for custom editor
+set(SMTG_ENABLE_VSTGUI_SUPPORT ON CACHE BOOL "" FORCE)
 
 # Disable post-build symlink creation (requires admin on Windows)
 # and post-build validator run (fails if symlink fails).

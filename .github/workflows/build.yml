@@ -49,6 +49,16 @@ jobs:
         shell: bash
 
       # --- Linux ---
+      - name: Install VSTGUI dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libx11-dev libxcb1-dev libxcb-util0-dev \
+            libxcb-cursor-dev libxcb-keysyms1-dev libxcb-xkb-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev libcairo2-dev \
+            libpango1.0-dev libfontconfig1-dev libfreetype-dev \
+            libgtkmm-3.0-dev libsqlite3-dev
+
       - name: Configure (Linux)
         if: runner.os == 'Linux'
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release

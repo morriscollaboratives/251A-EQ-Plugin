@@ -4,6 +4,7 @@
 
 #include "controller.h"
 #include "plugids.h"
+#include "gui/LangevinEditor.h"
 
 #include "base/source/fstreamer.h"
 #include "pluginterfaces/base/ibstream.h"
@@ -112,6 +113,27 @@ tresult PLUGIN_API LangevinController::setComponentState(IBStream* state) {
     setParamNormalized(kBypass, savedBypass ? 1.0 : 0.0);
 
     return kResultOk;
+}
+
+// --------------------------------------------------------------------------
+IPlugView* PLUGIN_API LangevinController::createView(FIDString name) {
+    if (FIDStringsEqual(name, ViewType::kEditor)) {
+        auto* editor = new LangevinEditor(this);
+        guiEditor_ = editor;
+        return editor;
+    }
+    return nullptr;
+}
+
+// --------------------------------------------------------------------------
+tresult PLUGIN_API LangevinController::setParamNormalized(
+    Steinberg::Vst::ParamID tag, Steinberg::Vst::ParamValue value)
+{
+    tresult result = EditController::setParamNormalized(tag, value);
+    if (result == kResultOk && guiEditor_) {
+        guiEditor_->syncParameterValue(tag, value);
+    }
+    return result;
 }
 
 } // namespace Langevin

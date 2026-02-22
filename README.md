@@ -1,6 +1,6 @@
 # Langevin EQ-251A
 
-Analog-modeled VST3/AU plugin emulating the 1961 Langevin EQ-251A passive LC program equalizer. 64-bit double-precision, 4× oversampled, derived from schematic analysis of the original bridged-T topology.
+Analog-modeled VST3/AU plugin emulating the 1961 Langevin EQ-251A passive LC program equalizer. 64-bit double-precision, 4× oversampled, derived from schematic analysis of the original bridged-T topology. Custom vintage skeuomorphic GUI.
 
 **Formats:** VST3 (Windows, macOS, Linux) + Audio Unit (macOS)
 
@@ -34,7 +34,7 @@ All platforms need **Git** and **CMake 3.25+**.
 |----------|----------------------|
 | Windows  | [Visual Studio 2022](https://visualstudio.microsoft.com/) with **"Desktop development with C++"** |
 | macOS    | Xcode (from App Store) |
-| Linux    | `sudo apt install cmake g++ git` |
+| Linux    | `sudo apt install cmake g++ git libx11-dev libxcb-util0-dev libxcb-cursor-dev libxcb-keysyms1-dev libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev libcairo2-dev libpango1.0-dev libfontconfig1-dev libfreetype-dev libgtkmm-3.0-dev libsqlite3-dev` |
 
 ### One-line Build
 
@@ -138,6 +138,9 @@ Output lands in `build/VST3/Release/LangevinEQ251A.vst3/`.
     │   └── au-info.plist           Audio Unit descriptor
     └── src/
         ├── dsp/LangevinDSP.h       DSP engine (header-only)
+        ├── gui/
+        │   ├── LangevinEditor.h     VSTGUI editor
+        │   └── LangevinEditor.cpp   Custom vintage controls
         ├── processor.h/.cpp        VST3 audio processor
         ├── controller.h/.cpp       VST3 edit controller
         ├── entry.cpp               Plugin factory

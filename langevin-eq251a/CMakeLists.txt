@@ -14,6 +14,8 @@ set(langevin_sources
     src/plugids.h
     src/version.h
     src/dsp/LangevinDSP.h
+    src/gui/LangevinEditor.h
+    src/gui/LangevinEditor.cpp
 )
 
 set(target LangevinEQ251A)
@@ -43,6 +45,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PRIVATE
         sdk
+        vstgui_support
 )
 
 if(SMTG_MAC)

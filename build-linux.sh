@@ -32,6 +32,26 @@ for cmd in cmake g++ git; do
     fi
 done
 
+# ---- Install VSTGUI dependencies (Linux) ----
+
+echo "    Checking GUI dependencies..."
+DEPS="libx11-dev libxcb1-dev libxcb-util0-dev libxcb-cursor-dev"
+DEPS="$DEPS libxcb-keysyms1-dev libxcb-xkb-dev libxkbcommon-dev"
+DEPS="$DEPS libxkbcommon-x11-dev libcairo2-dev libpango1.0-dev"
+DEPS="$DEPS libfontconfig1-dev libfreetype-dev libgtkmm-3.0-dev libsqlite3-dev"
+
+MISSING=""
+for pkg in $DEPS; do
+    if ! dpkg -s "$pkg" &>/dev/null; then
+        MISSING="$MISSING $pkg"
+    fi
+done
+
+if [ -n "$MISSING" ]; then
+    echo "    Installing:$MISSING"
+    sudo apt-get install -y -qq $MISSING
+fi
+
 # ---- Clone VST3 SDK ----
 
 if [ ! -d "vst3sdk" ]; then
