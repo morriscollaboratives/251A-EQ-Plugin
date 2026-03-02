@@ -1,10 +1,33 @@
+# Build outputs
 build/
-vst3sdk/
-AudioUnitSDK/
-*.vst3/
-*.component/
-.DS_Store
-Thumbs.db
+cmake-build-*/
+
+# JUCE fetched dependencies
+_deps/
+
+# IDE files
+.vs/
+.vscode/
+*.xcodeproj/
+*.xcworkspace/
 *.user
 *.suo
-CMakeUserPresets.json
+*.sdf
+*.opensdf
+*.cachefile
+
+# Compiled objects
+*.o
+*.obj
+*.lib
+*.a
+*.dll
+*.dylib
+*.so
+*.vst3
+*.component
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,42 +1,58 @@
 cmake_minimum_required(VERSION 3.25.0)
 
-# -------------------------------------------------------
-# Langevin EQ-251A — Top-level build
-#
-# Builds:
-#   - VST3 plugin (all platforms)
-#   - Audio Unit v2 (macOS with Xcode generator)
-#
-# Usage:
-#   Windows:  cmake .. -A x64 && cmake --build . --config Release
-#   Linux:    cmake .. -DCMAKE_BUILD_TYPE=Release && cmake --build .
-#   macOS:    cmake .. -G Xcode && cmake --build . --config Release
-# -------------------------------------------------------
+project(LangevinEQ251A VERSION 1.0.0)
 
-# Disable unnecessary SDK examples
-set(SMTG_ENABLE_VST3_PLUGIN_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SMTG_ENABLE_VST3_HOSTING_EXAMPLES OFF CACHE BOOL "" FORCE)
+include(FetchContent)
+FetchContent_Declare(
+    JUCE
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG 8.0.4
+)
+FetchContent_MakeAvailable(JUCE)
 
-# Enable VSTGUI for custom editor
-set(SMTG_ENABLE_VSTGUI_SUPPORT ON CACHE BOOL "" FORCE)
+juce_add_plugin(LangevinEQ251A
+    COMPANY_NAME "Morris Collaboratives"
+    IS_SYNTH FALSE
+    NEEDS_MIDI_INPUT FALSE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD TRUE
+    PLUGIN_MANUFACTURER_CODE MoCo
+    PLUGIN_CODE Lneq
+    FORMATS AU VST3
+    PRODUCT_NAME "Langevin EQ-251A"
+    BUNDLE_ID "com.morriscollaboratives.langevin-eq251a"
+    AU_MAIN_TYPE kAudioUnitType_Effect
+    VST3_CATEGORIES "Fx" "EQ"
+)
 
-# Disable post-build symlink creation (requires admin on Windows)
-# and post-build validator run (fails if symlink fails).
-# The build script handles installation separately.
-set(SMTG_PLUGIN_TARGET_PATH "" CACHE STRING "" FORCE)
-set(SMTG_RUN_VST_VALIDATOR OFF CACHE BOOL "" FORCE)
+target_sources(LangevinEQ251A
+    PRIVATE
+        src/PluginProcessor.cpp
+        src/PluginProcessor.h
+        src/PluginEditor.cpp
+        src/PluginEditor.h
+        src/dsp/LangevinDSP.h
+)
 
-# Point to the VST3 SDK
-set(VST3_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vst3sdk" CACHE PATH "VST3 SDK root")
+target_compile_features(LangevinEQ251A PUBLIC cxx_std_17)
 
-# If Apple AudioUnit SDK is present next to vst3sdk, point to it
-# (The SDK auto-detects this, but we can also set it explicitly)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/AudioUnitSDK/AudioUnitSDK.xcodeproj")
-    set(SMTG_AUDIOUNIT_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/AudioUnitSDK" CACHE PATH "AudioUnit SDK" FORCE)
-endif()
+target_compile_definitions(LangevinEQ251A
+    PUBLIC
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_DISPLAY_SPLASH_SCREEN=0
+)
 
-# Include the SDK
-add_subdirectory(${VST3_SDK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/vst3sdk)
-
-# Include our plugin
-add_subdirectory(langevin-eq251a)
+target_link_libraries(LangevinEQ251A
+    PRIVATE
+        juce::juce_audio_utils
+        juce::juce_audio_processors
+        juce::juce_gui_basics
+    PUBLIC
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags
+        juce::juce_recommended_warning_flags
+)
